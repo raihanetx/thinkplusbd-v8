@@ -1,0 +1,22 @@
+[
+    {
+        "name": "Course",
+        "icon": "fas fa-graduation-cap",
+        "subtitle": "Premium Courses"
+    },
+    {
+        "name": "Subscription",
+        "icon": "fas fa-key",
+        "subtitle": "Premium Services"
+    },
+    {
+        "name": "Software",
+        "icon": "fas fa-laptop-code",
+        "subtitle": "Bundle Packages"
+    },
+    {
+        "name": "Ebook",
+        "icon": "fas fa-book-open",
+        "subtitle": "Digital Guides"
+    }
+]
