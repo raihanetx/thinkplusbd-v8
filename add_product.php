@@ -18,6 +18,7 @@ function get_categories() {
 }
 
 $categories = get_categories();
+$selected_category = isset($_GET['category']) ? $_GET['category'] : '';
 
 ?>
 <!DOCTYPE html>
@@ -81,7 +82,9 @@ $categories = get_categories();
                             <label for="category">Category</label>
                             <select name="category" id="category" class="form-control" required style="width: 100%; padding: 0.5rem; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
                                 <?php foreach ($categories as $category): ?>
-                                    <option value="<?php echo strtolower(htmlspecialchars($category['name'])); ?>"><?php echo htmlspecialchars($category['name']); ?></option>
+                                    <option value="<?php echo strtolower(htmlspecialchars($category['name'])); ?>" <?php if (strtolower($selected_category) === strtolower($category['name'])) echo 'selected'; ?>>
+                                        <?php echo htmlspecialchars($category['name']); ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
