@@ -506,6 +506,72 @@ src="https://www.facebook.com/tr?id=482675157669768&ev=PageView&noscript=1"
         .add-to-cart-detail { background-color: transparent; color: var(--primary-color); border: 2px solid var(--primary-color) !important; }
         .add-to-cart-detail:hover { background-color: rgba(143,135,241,0.1); border-color: var(--primary-color); filter: brightness(0.95); }
 
+        .sticky-add-to-cart-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #fff;
+            padding: 1rem;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+        }
+
+        .add-to-cart-sticky {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .accordion {
+            margin-top: 1rem;
+        }
+
+        .accordion-item {
+            border-bottom: 1px solid #eee;
+        }
+
+        .accordion-header {
+            background-color: #f7f7f7;
+            border: none;
+            width: 100%;
+            text-align: left;
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .accordion-header::after {
+            content: '+';
+            position: absolute;
+            right: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .accordion-content {
+            padding: 1rem;
+            display: none;
+        }
+
+        .accordion-item.active .accordion-content {
+            display: block;
+        }
+
+        .accordion-item.active .accordion-header::after {
+            content: '-';
+        }
+
         .related-products-section { margin-top: 3rem; padding: 2rem 0; background: transparent; }
         .related-products-header { display: flex; justify-content: center; align-items: center; margin-bottom: 2rem; padding: 0 1rem; }
         .related-products-title { font-size: 1.8rem; font-weight: 700; color: var(--primary-color); margin: 0; text-align: center; }
@@ -2096,20 +2162,125 @@ src="https://www.facebook.com/tr?id=482675157669768&ev=PageView&noscript=1"
         }
 
         function showProductDetail(productId) {
-            let product = getProductById(productId); const detailPageElement = domElements.pages.productDetail; if (!product || !detailPageElement) { console.error(`Product ${productId} not found or detail page missing.`); showToast('Product details unavailable.', 'error'); navigateTo('products', 'all'); return; }
-            product = { ...product }; delete product.currentSelectedPrice;
-            const imageContainer = document.createElement('div'); imageContainer.className = 'product-detail-main-image-container'; const skeletonDiv = document.createElement('div'); skeletonDiv.className = 'skeleton'; imageContainer.appendChild(skeletonDiv); const placeholderTextSpan = document.createElement('span'); placeholderTextSpan.className = 'image-placeholder-text'; placeholderTextSpan.style.display = 'none'; placeholderTextSpan.textContent = `Image for ${product.name}`; imageContainer.appendChild(placeholderTextSpan);
-            if (product.image && product.image !== 'path/to/default-product-image.jpg') { const img = document.createElement('img'); img.src = product.image; img.alt = product.name; img.className = 'image-fade-in'; imageContainer.appendChild(img); setupSingleImageLoading(img); } else { skeletonDiv.style.display = 'none'; placeholderTextSpan.style.display = 'block'; }
-            let durationSelectorHTML = ''; let currentPrice = parseFloat(product.price);
-            if (product.category === 'subscription' && Array.isArray(product.durations) && product.durations.length > 0) { currentPrice = parseFloat(product.durations[0].price); durationSelectorHTML = `<div class="duration-selector" style="margin-bottom:0.75rem;display:block;"><label for="duration-detail-${product.id}" style="font-weight:600;margin-bottom:0.5rem;display:block;">Select Duration:</label><select id="duration-detail-${product.id}" data-product-id="${product.id}" style="width:100%;padding:0.7rem;border:1px solid #ccc;border-radius:6px;font-size:1rem;">${product.durations.map(d => `<option value="${parseFloat(d.price)}" ${parseFloat(d.price) === currentPrice ? 'selected' : ''}>${d.label} - ৳${parseFloat(d.price).toFixed(2)}</option>`).join('')}</select></div>`; }
+            let product = getProductById(productId);
+            const detailPageElement = domElements.pages.productDetail;
+            if (!product || !detailPageElement) {
+                console.error(`Product ${productId} not found or detail page missing.`);
+                showToast('Product details unavailable.', 'error');
+                navigateTo('products', 'all');
+                return;
+            }
+
+            product = { ...product };
+            delete product.currentSelectedPrice;
+
+            const imageContainer = document.createElement('div');
+            imageContainer.className = 'product-detail-main-image-container';
+            const skeletonDiv = document.createElement('div');
+            skeletonDiv.className = 'skeleton';
+            imageContainer.appendChild(skeletonDiv);
+            const placeholderTextSpan = document.createElement('span');
+            placeholderTextSpan.className = 'image-placeholder-text';
+            placeholderTextSpan.style.display = 'none';
+            placeholderTextSpan.textContent = `Image for ${product.name}`;
+            imageContainer.appendChild(placeholderTextSpan);
+
+            if (product.image && product.image !== 'path/to/default-product-image.jpg') {
+                const img = document.createElement('img');
+                img.src = product.image;
+                img.alt = product.name;
+                img.className = 'image-fade-in';
+                imageContainer.appendChild(img);
+                setupSingleImageLoading(img);
+            } else {
+                skeletonDiv.style.display = 'none';
+                placeholderTextSpan.style.display = 'block';
+            }
+
+            let durationSelectorHTML = '';
+            let currentPrice = parseFloat(product.price);
+            if (product.category === 'subscription' && Array.isArray(product.durations) && product.durations.length > 0) {
+                currentPrice = parseFloat(product.durations[0].price);
+                durationSelectorHTML = `<div class="duration-selector" style="margin-bottom:0.75rem;display:block;"><label for="duration-detail-${product.id}" style="font-weight:600;margin-bottom:0.5rem;display:block;">Select Duration:</label><select id="duration-detail-${product.id}" data-product-id="${product.id}" style="width:100%;padding:0.7rem;border:1px solid #ccc;border-radius:6px;font-size:1rem;">${product.durations.map(d => `<option value="${parseFloat(d.price)}" ${parseFloat(d.price) === currentPrice ? 'selected' : ''}>${d.label} - ৳${parseFloat(d.price).toFixed(2)}</option>`).join('')}</select></div>`;
+            }
+
             const relatedProductsHTML = renderRelatedProductsSection(product.id, product.category);
-            const tempImageDiv = document.createElement('div'); tempImageDiv.appendChild(imageContainer);
-            const longDescription = product.longDescription ? nl2br(htmlspecialchars_decode(product.longDescription)) : (product.description ? nl2br(htmlspecialchars_decode(product.description)) : 'An exceptional digital product.');
-            detailPageElement.innerHTML = `<div class="product-detail-container"><div class="product-detail-images">${tempImageDiv.innerHTML}</div><div class="product-detail-info"><h2 class="product-detail-title">${product.name || 'N/A'}</h2><div class="product-detail-description">${longDescription}</div><div class="product-detail-price">৳${currentPrice.toFixed(2)}</div>${durationSelectorHTML}<div class="product-detail-actions"><button class="buy-now-detail" data-id="${product.id}"><i class="fas fa-bolt"></i> Buy Now</button><button class="add-to-cart-detail" data-id="${product.id}"><i class="fas fa-cart-plus"></i> Add to Cart</button></div></div></div>${relatedProductsHTML}`;
-            const detailDurationSelector = detailPageElement.querySelector(`#duration-detail-${product.id}`); if (detailDurationSelector) { detailDurationSelector.addEventListener('change', (e) => { const newPrice = parseFloat(e.target.value); const priceElement = detailPageElement.querySelector('.product-detail-price'); if (priceElement) priceElement.textContent = `৳${newPrice.toFixed(2)}`; }); }
-            const buyNowDetailButton = detailPageElement.querySelector('.buy-now-detail'); if (buyNowDetailButton) { buyNowDetailButton.addEventListener('click', (e) => { const productId = parseInt(e.currentTarget.dataset.id); const productForCart = getProductById(productId); if (productForCart) { const productToBuy = { ...productForCart }; const durationSel = document.getElementById(`duration-detail-${productId}`); if (durationSel && durationSel.value) { const selectedOption = durationSel.options[durationSel.selectedIndex]; productToBuy.price = parseFloat(selectedOption.value); productToBuy.selectedDurationLabel = selectedOption.text.split(' - ')[0]; } else if (Array.isArray(productToBuy.durations) && productToBuy.durations.length > 0) { productToBuy.price = parseFloat(productToBuy.durations[0].price); productToBuy.selectedDurationLabel = productToBuy.durations[0].label; } cart = [{ ...productToBuy, quantity: 1 }]; updateCart(); navigateTo('checkout', null, null, true); } }); }
-            const addToCartDetailButton = detailPageElement.querySelector('.add-to-cart-detail'); if (addToCartDetailButton) { addToCartDetailButton.addEventListener('click', (e) => { const productId = parseInt(e.currentTarget.dataset.id); const productForCart = getProductById(productId); if(productForCart) { const productToAdd = { ...productForCart }; const durationSel = document.getElementById(`duration-detail-${productId}`); if (durationSel && durationSel.value) { const selectedOption = durationSel.options[durationSel.selectedIndex]; productToAdd.price = parseFloat(selectedOption.value); } else if (Array.isArray(productToAdd.durations) && productToAdd.durations.length > 0) { productToAdd.price = parseFloat(productToAdd.durations[0].price); } addToCart(productToAdd); } }); }
+            const tempImageDiv = document.createElement('div');
+            tempImageDiv.appendChild(imageContainer);
+
+            const shortDescription = product.description ? nl2br(htmlspecialchars_decode(product.description)) : 'An exceptional digital product.';
+            const longDescription = product.longDescription ? nl2br(htmlspecialchars_decode(product.longDescription)) : shortDescription;
+            const reviews = product.reviews ? nl2br(htmlspecialchars_decode(product.reviews)) : 'No reviews yet.';
+
+            const stockStatus = product.stock > 0 ? "In Stock" : "Out of Stock";
+
+            detailPageElement.innerHTML = `
+                <div class="product-detail-container">
+                    <div class="product-detail-images">${tempImageDiv.innerHTML}</div>
+                    <div class="product-detail-info">
+                        <h2 class="product-detail-title">${product.name || 'N/A'}</h2>
+                        <p class="product-detail-short-description">${shortDescription}</p>
+                        <div class="product-detail-price">৳${currentPrice.toFixed(2)}</div>
+                        <div class="product-detail-stock-status">${stockStatus}</div>
+                        ${durationSelectorHTML}
+                        <div class="product-detail-actions">
+                            <button class="wishlist-btn"><i class="fas fa-heart"></i> Add to Wishlist</button>
+                            <button class="compare-btn"><i class="fas fa-exchange-alt"></i> Compare</button>
+                        </div>
+                        <div class="accordion">
+                            <div class="accordion-item">
+                                <button class="accordion-header">Description</button>
+                                <div class="accordion-content">
+                                    <p>${longDescription}</p>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <button class="accordion-header">Reviews</button>
+                                <div class="accordion-content">
+                                    <p>${reviews}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sticky-add-to-cart-container">
+                    <button class="add-to-cart-sticky" data-id="${product.id}">
+                        <i class="fas fa-cart-plus"></i> Add to Cart
+                    </button>
+                </div>
+                ${relatedProductsHTML}
+            `;
+
+            const detailDurationSelector = detailPageElement.querySelector(`#duration-detail-${product.id}`);
+            if (detailDurationSelector) {
+                detailDurationSelector.addEventListener('change', (e) => {
+                    const newPrice = parseFloat(e.target.value);
+                    const priceElement = detailPageElement.querySelector('.product-detail-price');
+                    if (priceElement) priceElement.textContent = `৳${newPrice.toFixed(2)}`;
+                });
+            }
+
+            const addToCartStickyButton = detailPageElement.querySelector('.add-to-cart-sticky');
+            if (addToCartStickyButton) {
+                addToCartStickyButton.addEventListener('click', (e) => {
+                    const productId = parseInt(e.currentTarget.dataset.id);
+                    const productForCart = getProductById(productId);
+                    if (productForCart) {
+                        const productToAdd = { ...productForCart };
+                        const durationSel = document.getElementById(`duration-detail-${productId}`);
+                        if (durationSel && durationSel.value) {
+                            const selectedOption = durationSel.options[durationSel.selectedIndex];
+                            productToAdd.price = parseFloat(selectedOption.value);
+                        } else if (Array.isArray(productToAdd.durations) && productToAdd.durations.length > 0) {
+                            productToAdd.price = parseFloat(productToAdd.durations[0].price);
+                        }
+                        addToCart(productToAdd);
+                    }
+                });
+            }
+
             setupRelatedProductImages();
+            setupAccordion();
         }
 
         function getRelatedProducts(currentProductId, category, limit = 4) { const dataToUse = (allProductsData && allProductsData.length > 0) ? allProductsData : generateDemoProducts(); if (!dataToUse || dataToUse.length === 0) return []; const relatedProducts = dataToUse.filter(product => product.category === category && product.id !== currentProductId); const shuffled = relatedProducts.sort(() => Math.random() - 0.5); return shuffled.slice(0, limit); }
@@ -2121,6 +2292,16 @@ src="https://www.facebook.com/tr?id=482675157669768&ev=PageView&noscript=1"
         function setupRelatedProductImages() { const relatedImages = document.querySelectorAll('.related-product-image-container img.image-fade-in'); relatedImages.forEach(img => { setupSingleImageLoading(img); }); }
         function handleProductCardBuyNow(productId) { const product = getProductById(productId); if (product) { const productForCart = { ...product }; if (product.category === 'subscription' && Array.isArray(product.durations) && product.durations.length > 0) { productForCart.price = parseFloat(product.durations[0].price); productForCart.selectedDurationLabel = product.durations[0].label; } else { productForCart.price = parseFloat(product.price); delete productForCart.selectedDurationLabel; } delete productForCart.currentSelectedPrice; cart = [{ ...productForCart, quantity: 1 }]; updateCart(); navigateTo('checkout', null, null, true); } }
         
+        function setupAccordion() {
+            const accordionItems = document.querySelectorAll('.accordion-item');
+            accordionItems.forEach(item => {
+                const header = item.querySelector('.accordion-header');
+                header.addEventListener('click', () => {
+                    item.classList.toggle('active');
+                });
+            });
+        }
+
         function updateCheckoutPageOrderSummary() {
             const orderItemsElement = domElements.orderItemsCheckout; const orderTotalElement = domElements.orderTotalCheckout; const submitButton = domElements.checkoutForm ? domElements.checkoutForm.querySelector('.submit-btn') : null;
             if (!orderItemsElement || !orderTotalElement) return;
