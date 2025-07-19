@@ -100,6 +100,25 @@ $stats_90_days = getStatsForPeriod($all_site_orders_for_stats, $ninety_days_star
 $stats_year = getStatsForPeriod($all_site_orders_for_stats, $year_start, $today_end);
 $current_total_pending_all_time = getCurrentTotalPendingOrders($all_site_orders_for_stats);
 
+// Functions needed for edit products
+function get_categories() {
+    $categories_file_path = __DIR__ . '/categories.json';
+    if (!file_exists($categories_file_path)) {
+        return [];
+    }
+    $json_data = file_get_contents($categories_file_path);
+    return json_decode($json_data, true);
+}
+
+function get_products() {
+    $products_file_path = __DIR__ . '/products.json';
+    if (!file_exists($products_file_path)) {
+        return [];
+    }
+    $json_data = file_get_contents($products_file_path);
+    return json_decode($json_data, true);
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -120,7 +139,7 @@ $current_total_pending_all_time = getCurrentTotalPendingOrders($all_site_orders_
                 <ul>
                     <li><a href="admin_dashboard.php" class="<?php echo (strpos($_SERVER['REQUEST_URI'], 'admin_dashboard.php') !== false && empty($_GET['page']) && strpos($_SERVER['REQUEST_URI'], 'product_code_generator.html') === false) ? 'active' : ''; ?>"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
                     <li><a href="admin_dashboard.php?page=categories" class="<?php echo (isset($_GET['page']) && $_GET['page'] === 'categories') ? 'active' : ''; ?>"><i class="fas fa-tags"></i> <span>Manage Categories</span></a></li>
-                    <li><a href="edit_products.php"><i class="fas fa-edit"></i> <span>Edit Products</span></a></li>
+                    <li><a href="admin_dashboard.php?page=edit_products" class="<?php echo (isset($_GET['page']) && $_GET['page'] === 'edit_products') ? 'active' : ''; ?>"><i class="fas fa-edit"></i> <span>Edit Products</span></a></li>
                     <li><a href="product_code_generator.html" target="_blank"><i class="fas fa-plus-circle"></i> <span>Add Product Helper</span></a></li>
                     <li><a href="admin_dashboard.php?logout=1"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
                 </ul>
@@ -207,6 +226,141 @@ $current_total_pending_all_time = getCurrentTotalPendingOrders($all_site_orders_
                         </table>
                     </div>
                 </div>
+            <?php elseif (isset($_GET['page']) && $_GET['page'] === 'edit_products'): ?>
+                <?php
+                $categories = get_categories();
+                $selected_category = isset($_GET['category']) ? $_GET['category'] : null;
+                $products = get_products();
+                ?>
+                <div class="content-card">
+                    <h2 class="card-title">Select a Category to Edit Products</h2>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <form method="GET" action="admin_dashboard.php" style="margin-bottom: 0;">
+                            <input type="hidden" name="page" value="edit_products">
+                            <select name="category" onchange="this.form.submit()">
+                                <option value="">-- Select Category --</option>
+                            <?php foreach ($categories as $category): ?>
+                                <option value="<?php echo htmlspecialchars($category['name']); ?>" <?php if ($selected_category === $category['name']) echo 'selected'; ?>>
+                                    <?php echo htmlspecialchars($category['name']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </form>
+                    <?php if ($selected_category): ?>
+                        <a href="add_product.php?category=<?php echo urlencode($selected_category); ?>" class="action-btn" style="text-decoration: none;">Add New Product</a>
+                    <?php endif; ?>
+                    </div>
+                </div>
+
+                <?php if ($selected_category): ?>
+                <div class="content-card">
+                    <h2 class="card-title">Editing Products in "<?php echo htmlspecialchars($selected_category); ?>"</h2>
+                    <div class="orders-table-container">
+                        <table class="orders-table">
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                if ($products) {
+                                    foreach ($products as $product) {
+                                        if (strtolower($product['category']) === strtolower($selected_category)) {
+                                            echo '<tr>';
+                                            echo '<td data-label="Product Name">' . htmlspecialchars($product['name']) . '</td>';
+                                            echo '<td data-label="Actions">
+                                                    <a href="admin_dashboard.php?page=edit_product&id=' . $product['id'] . '" class="action-btn">Edit</a>
+                                                    <form method="POST" action="delete_product.php" style="display:inline;" onsubmit="return confirm(\'Are you sure you want to delete this product?\');">
+                                                        <input type="hidden" name="product_id" value="' . $product['id'] . '">
+                                                        <button type="submit" class="action-btn action-btn-delete" style="color: #dc3545 !important; border-color: #dc3545;">Delete</button>
+                                                    </form>
+                                                  </td>';
+                                            echo '</tr>';
+                                        }
+                                    }
+                                }
+                                ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <?php endif; ?>
+            <?php elseif (isset($_GET['page']) && $_GET['page'] === 'edit_product' && isset($_GET['id'])): ?>
+                <?php
+                $product_id = (int)$_GET['id'];
+                $products = get_products();
+                $product_to_edit = null;
+                foreach ($products as $product) {
+                    if ($product['id'] === $product_id) {
+                        $product_to_edit = $product;
+                        break;
+                    }
+                }
+                ?>
+                <?php if ($product_to_edit): ?>
+                    <div class="content-card">
+                        <h2 class="card-title">Editing "<?php echo htmlspecialchars($product_to_edit['name']); ?>"</h2>
+                        <form action="update_product.php" method="POST" enctype="multipart/form-data">
+                            <input type="hidden" name="product_id" value="<?php echo $product_to_edit['id']; ?>">
+
+                            <div class="form-group" style="margin-bottom: 1rem;">
+                                <label for="name">Product Title</label>
+                                <input type="text" name="name" id="name" value="<?php echo htmlspecialchars($product_to_edit['name']); ?>" class="form-control" style="width: 100%; padding: 0.5rem; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 1rem;">
+                                <label for="description">Short Description</label>
+                                <textarea name="description" id="description" rows="3" class="form-control" style="width: 100%; padding: 0.5rem; border-radius: var(--border-radius); border: 1px solid var(--border-color);"><?php echo htmlspecialchars($product_to_edit['description']); ?></textarea>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 1rem;">
+                                <label for="longDescription">Long Description</label>
+                                <textarea name="longDescription" id="longDescription" rows="10" class="form-control" style="width: 100%; padding: 0.5rem; border-radius: var(--border-radius); border: 1px solid var(--border-color);"><?php echo htmlspecialchars($product_to_edit['longDescription']); ?></textarea>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 1rem;">
+                                <label for="price">Price (for products without duration)</label>
+                                <input type="number" step="0.01" name="price" id="price" value="<?php echo htmlspecialchars($product_to_edit['price']); ?>" class="form-control" style="width: 100%; padding: 0.5rem; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 1rem;">
+                                <label>Durations and Prices</label>
+                                <div id="durations-container">
+                                    <?php if (!empty($product_to_edit['durations'])): ?>
+                                        <?php foreach ($product_to_edit['durations'] as $index => $duration): ?>
+                                            <div class="duration-item" style="display: flex; gap: 1rem; margin-bottom: 0.5rem;">
+                                                <input type="text" name="durations[<?php echo $index; ?>][label]" placeholder="Label (e.g., 1 Month)" value="<?php echo htmlspecialchars($duration['label']); ?>" style="width: 100%; padding: 0.5rem; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+                                                <input type="number" step="0.01" name="durations[<?php echo $index; ?>][price]" placeholder="Price" value="<?php echo htmlspecialchars($duration['price']); ?>" style="width: 100%; padding: 0.5rem; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+                                                <button type="button" class="remove-duration-btn" style="padding: 0.5rem 1rem; border: none; background-color: #dc3545; color: white; border-radius: var(--border-radius); cursor: pointer;">Remove</button>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                                <button type="button" id="add-duration-btn" style="padding: 0.5rem 1rem; border: none; background-color: var(--primary-color); color: white; border-radius: var(--border-radius); cursor: pointer; margin-top: 0.5rem;">Add Duration</button>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 1rem;">
+                                <label>Current Image</label>
+                                <div>
+                                    <img src="<?php echo htmlspecialchars($product_to_edit['image']); ?>" alt="Current Image" style="max-width: 200px; max-height: 200px;">
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 1rem;">
+                                <label for="image">Upload New Image (optional)</label>
+                                <input type="file" name="image" id="image" class="form-control-file">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; border: none; background-color: var(--primary-color); color: white; border-radius: var(--border-radius); cursor: pointer;">Update Product</button>
+                        </form>
+                    </div>
+                <?php else: ?>
+                    <div class="content-card">
+                        <p>Product not found.</p>
+                    </div>
+                <?php endif; ?>
             <?php else: ?>
                 <div class="content-card">
                     <h2 class="card-title">Performance Overview</h2>
@@ -232,7 +386,6 @@ $current_total_pending_all_time = getCurrentTotalPendingOrders($all_site_orders_
                         <div class="stat-card" id="stat_total_revenue_card"><h4>Total Revenue</h4><p id="stat_total_revenue">৳0.00</p></div>
                     </div>
                 </div>
-                <?php endif; ?>
                 <div class="content-card">
                     <h2 class="card-title">Manage Orders</h2>
                     <?php if ($json_load_error): ?>
@@ -315,6 +468,7 @@ $current_total_pending_all_time = getCurrentTotalPendingOrders($all_site_orders_
                         <?php endif; ?>
                     </div>
                 </div>
+            <?php endif; ?>
             </div>
         </main>
     </div>
