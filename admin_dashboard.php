@@ -14,6 +14,7 @@ if (isset($_GET['logout']) && $_GET['logout'] == 1) {
     exit();
 }
 
+// Functions for stats
 function getStatsForPeriod($orders, $startDate, $endDate) {
     $stats = [
         'total_orders' => 0,
@@ -55,6 +56,68 @@ function getCurrentTotalPendingOrders($orders) {
     }
     return $count;
 }
+
+// Functions for products and categories
+function get_categories() {
+    $categories_file_path = __DIR__ . '/categories.json';
+    if (!file_exists($categories_file_path)) {
+        return [];
+    }
+    $json_data = file_get_contents($categories_file_path);
+    return json_decode($json_data, true);
+}
+
+function save_categories($categories) {
+    $categories_file_path = __DIR__ . '/categories.json';
+    $json_data = json_encode($categories, JSON_PRETTY_PRINT);
+    file_put_contents($categories_file_path, $json_data);
+}
+
+function get_products() {
+    $products_file_path = __DIR__ . '/products.json';
+    if (!file_exists($products_file_path)) {
+        return [];
+    }
+    $json_data = file_get_contents($products_file_path);
+    return json_decode($json_data, true);
+}
+
+// Handle form submissions for categories
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['add_category'])) {
+        $new_category_name = trim($_POST['category_name']);
+        $new_category_icon = trim($_POST['category_icon']);
+        $new_category_subtitle = trim($_POST['category_subtitle']);
+
+        if (!empty($new_category_name) && !empty($new_category_icon) && !empty($new_category_subtitle)) {
+            $categories = get_categories();
+            $new_category = [
+                'name' => $new_category_name,
+                'icon' => $new_category_icon,
+                'subtitle' => $new_category_subtitle
+            ];
+            $categories[] = $new_category;
+            save_categories($categories);
+            header("Location: admin_dashboard.php?page=categories&status=added");
+            exit();
+        } else {
+            header("Location: admin_dashboard.php?page=categories&error=empty_fields");
+            exit();
+        }
+    }
+
+    if (isset($_POST['delete_category'])) {
+        $category_name_to_delete = $_POST['category_name'];
+        $categories = get_categories();
+        $categories = array_filter($categories, function($category) use ($category_name_to_delete) {
+            return $category['name'] !== $category_name_to_delete;
+        });
+        save_categories(array_values($categories));
+        header("Location: admin_dashboard.php?page=categories&status=deleted");
+        exit();
+    }
+}
+
 
 $orders_file_path = __DIR__ . '/orders.json';
 $all_site_orders_for_stats = []; 
@@ -99,25 +162,6 @@ $stats_month = getStatsForPeriod($all_site_orders_for_stats, $month_start, $toda
 $stats_90_days = getStatsForPeriod($all_site_orders_for_stats, $ninety_days_start, $today_end);
 $stats_year = getStatsForPeriod($all_site_orders_for_stats, $year_start, $today_end);
 $current_total_pending_all_time = getCurrentTotalPendingOrders($all_site_orders_for_stats);
-
-// Functions needed for edit products
-function get_categories() {
-    $categories_file_path = __DIR__ . '/categories.json';
-    if (!file_exists($categories_file_path)) {
-        return [];
-    }
-    $json_data = file_get_contents($categories_file_path);
-    return json_decode($json_data, true);
-}
-
-function get_products() {
-    $products_file_path = __DIR__ . '/products.json';
-    if (!file_exists($products_file_path)) {
-        return [];
-    }
-    $json_data = file_get_contents($products_file_path);
-    return json_decode($json_data, true);
-}
 
 ?>
 <!DOCTYPE html>
@@ -171,7 +215,7 @@ function get_products() {
                         }
                     }
                     ?>
-                    <form method="POST" action="manage_categories.php" style="margin-bottom: 2rem;">
+                    <form method="POST" action="admin_dashboard.php?page=categories" style="margin-bottom: 2rem;">
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 1rem; align-items: end;">
                             <div>
                                 <label for="category_name" style="display:block; margin-bottom: .5rem; font-weight: 500;">Category Name</label>
@@ -212,7 +256,7 @@ function get_products() {
                                             echo '<td data-label="Icon">' . htmlspecialchars($category['icon']) . '</td>';
                                             echo '<td data-label="Subtitle">' . htmlspecialchars($category['subtitle']) . '</td>';
                                             echo '<td data-label="Action">
-                                                    <form method="POST" action="manage_categories.php" onsubmit="return confirm(\'Are you sure you want to delete this category?\');">
+                                                    <form method="POST" action="admin_dashboard.php?page=categories" onsubmit="return confirm(\'Are you sure you want to delete this category?\');">
                                                         <input type="hidden" name="category_name" value="' . htmlspecialchars($category['name']) . '">
                                                         <button type="submit" name="delete_category" class="action-btn action-btn-delete" style="color: #dc3545 !important; border-color: #dc3545;">Delete</button>
                                                     </form>
