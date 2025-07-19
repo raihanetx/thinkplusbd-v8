@@ -128,12 +128,6 @@ if (!$product_to_edit) {
             </div>
         </main>
     </div>
-    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
-    <script>
-        tinymce.init({
-            selector: '#longDescription'
-        });
-    </script>
     <script src="admin_dashboard.js"></script>
     <script>
         document.getElementById('add-duration-btn').addEventListener('click', function() {
