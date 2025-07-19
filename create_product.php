@@ -8,6 +8,15 @@ if (!isset($_SESSION['admin_logged_in_thinkplusbd']) || $_SESSION['admin_logged_
     exit();
 }
 
+function get_categories() {
+    $categories_file_path = __DIR__ . '/categories.json';
+    if (!file_exists($categories_file_path)) {
+        return [];
+    }
+    $json_data = file_get_contents($categories_file_path);
+    return json_decode($json_data, true);
+}
+
 function get_products() {
     $products_file_path = __DIR__ . '/products.json';
     if (!file_exists($products_file_path)) {
@@ -25,6 +34,7 @@ function save_products($products) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $products = get_products();
+    $categories = get_categories();
     $new_product_id = count($products) > 0 ? max(array_column($products, 'id')) + 1 : 1;
 
     $image_path = '';
