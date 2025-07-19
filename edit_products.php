@@ -81,7 +81,9 @@ $products = get_products();
                             <?php endforeach; ?>
                         </select>
                     </form>
-                    <a href="add_product.php" class="action-btn" style="text-decoration: none;">Add New Product</a>
+                    <?php if ($selected_category): ?>
+                        <a href="add_product.php?category=<?php echo urlencode($selected_category); ?>" class="action-btn" style="text-decoration: none;">Add New Product</a>
+                    <?php endif; ?>
                     </div>
                 </div>
 
