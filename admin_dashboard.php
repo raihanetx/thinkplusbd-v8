@@ -116,6 +116,93 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: admin_dashboard.php?page=categories&status=deleted");
         exit();
     }
+
+    if (isset($_POST['create_product'])) {
+        $products = get_products();
+        $new_product_id = count($products) > 0 ? max(array_column($products, 'id')) + 1 : 1;
+
+        $image_path = '';
+        if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+            $upload_dir = 'product_images/';
+            if (!is_dir($upload_dir)) {
+                mkdir($upload_dir, 0755, true);
+            }
+            $file_name = basename($_FILES['image']['name']);
+            $target_file = $upload_dir . $file_name;
+
+            if (move_uploaded_file($_FILES['image']['tmp_name'], $target_file)) {
+                $image_path = $target_file;
+            }
+        }
+
+        $new_product = [
+            'id' => $new_product_id,
+            'name' => $_POST['name'],
+            'description' => $_POST['description'],
+            'longDescription' => $_POST['longDescription'],
+            'category' => $_POST['category'],
+            'price' => (float)$_POST['price'],
+            'image' => $image_path,
+            'isFeatured' => isset($_POST['isFeatured']),
+            'durations' => []
+        ];
+
+        $products[] = $new_product;
+        save_products($products);
+
+        header("Location: admin_dashboard.php?page=edit_products&category=" . urlencode($_POST['category']) . "&status=added");
+        exit();
+    }
+
+    if (isset($_POST['update_product'])) {
+        $product_id = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
+
+        if ($product_id > 0) {
+            $products = get_products();
+            $product_index = -1;
+
+            foreach ($products as $index => $product) {
+                if ($product['id'] === $product_id) {
+                    $product_index = $index;
+                    break;
+                }
+            }
+
+            if ($product_index !== -1) {
+                $products[$product_index]['name'] = $_POST['name'];
+                $products[$product_index]['description'] = $_POST['description'];
+                $products[$product_index]['longDescription'] = $_POST['longDescription'];
+                $products[$product_index]['price'] = (float)$_POST['price'];
+
+                $durations = [];
+                if (isset($_POST['durations']) && is_array($_POST['durations'])) {
+                    foreach ($_POST['durations'] as $duration) {
+                        if (!empty($duration['label']) && !empty($duration['price'])) {
+                            $durations[] = [
+                                'label' => $duration['label'],
+                                'price' => (float)$duration['price']
+                            ];
+                        }
+                    }
+                }
+                $products[$product_index]['durations'] = $durations;
+
+                if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                    $upload_dir = 'product_images/';
+                    $file_name = basename($_FILES['image']['name']);
+                    $target_file = $upload_dir . $file_name;
+
+                    if (move_uploaded_file($_FILES['image']['tmp_name'], $target_file)) {
+                        $products[$product_index]['image'] = $target_file;
+                    }
+                }
+
+                save_products($products);
+                header("Location: admin_dashboard.php?page=edit_products&category=" . urlencode($products[$product_index]['category']) . "&status=updated");
+                exit();
+            }
+        }
+    }
 }
 
 
@@ -281,7 +368,7 @@ $current_total_pending_all_time = getCurrentTotalPendingOrders($all_site_orders_
                         </select>
                     </form>
                     <?php if ($selected_category): ?>
-                        <a href="add_product.php?category=<?php echo urlencode($selected_category); ?>" class="action-btn" style="text-decoration: none;">Add New Product</a>
+                        <a href="admin_dashboard.php?page=add_product&category=<?php echo urlencode($selected_category); ?>" class="action-btn" style="text-decoration: none;">Add New Product</a>
                     <?php endif; ?>
                     </div>
                 </div>
@@ -321,6 +408,58 @@ $current_total_pending_all_time = getCurrentTotalPendingOrders($all_site_orders_
                     </div>
                 </div>
                 <?php endif; ?>
+            <?php elseif (isset($_GET['page']) && $_GET['page'] === 'add_product'): ?>
+                <div class="content-card">
+                    <h2 class="card-title">Add a New Product</h2>
+                    <form action="admin_dashboard.php?page=edit_products" method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="create_product" value="1">
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label for="name">Product Title</label>
+                            <input type="text" name="name" id="name" class="form-control" required style="width: 100%; padding: 0.5rem; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label for="description">Short Description</label>
+                            <textarea name="description" id="description" rows="3" class="form-control" required style="width: 100%; padding: 0.5rem; border-radius: var(--border-radius); border: 1px solid var(--border-color);"></textarea>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label for="longDescription">Long Description</label>
+                            <textarea name="longDescription" id="longDescription" rows="10" class="form-control" style="width: 100%; padding: 0.5rem; border-radius: var(--border-radius); border: 1px solid var(--border-color);"></textarea>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label for="price">Price</label>
+                            <input type="number" step="0.01" name="price" id="price" class="form-control" required style="width: 100%; padding: 0.5rem; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label for="category">Category</label>
+                            <select name="category" id="category" class="form-control" required style="width: 100%; padding: 0.5rem; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+                                <?php
+                                $categories = get_categories();
+                                $selected_category = isset($_GET['category']) ? $_GET['category'] : '';
+                                foreach ($categories as $category): ?>
+                                    <option value="<?php echo strtolower(htmlspecialchars($category['name'])); ?>" <?php if (strtolower($selected_category) === strtolower($category['name'])) echo 'selected'; ?>>
+                                        <?php echo htmlspecialchars($category['name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label for="image">Product Image</label>
+                            <input type="file" name="image" id="image" class="form-control-file" required>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label for="isFeatured">Featured Product?</label>
+                            <input type="checkbox" name="isFeatured" id="isFeatured" value="true">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; border: none; background-color: var(--primary-color); color: white; border-radius: var(--border-radius); cursor: pointer;">Add Product</button>
+                    </form>
+                </div>
             <?php elseif (isset($_GET['page']) && $_GET['page'] === 'edit_product' && isset($_GET['id'])): ?>
                 <?php
                 $product_id = (int)$_GET['id'];
@@ -336,7 +475,8 @@ $current_total_pending_all_time = getCurrentTotalPendingOrders($all_site_orders_
                 <?php if ($product_to_edit): ?>
                     <div class="content-card">
                         <h2 class="card-title">Editing "<?php echo htmlspecialchars($product_to_edit['name']); ?>"</h2>
-                        <form action="update_product.php" method="POST" enctype="multipart/form-data">
+                        <form action="admin_dashboard.php?page=edit_product&id=<?php echo $product_to_edit['id']; ?>" method="POST" enctype="multipart/form-data">
+                            <input type="hidden" name="update_product" value="1">
                             <input type="hidden" name="product_id" value="<?php echo $product_to_edit['id']; ?>">
 
                             <div class="form-group" style="margin-bottom: 1rem;">
