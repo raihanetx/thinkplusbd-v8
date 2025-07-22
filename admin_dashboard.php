@@ -233,41 +233,31 @@ $current_total_pending_all_time = getCurrentTotalPendingOrders($all_site_orders_
                         </div>
                     </form>
 
-                    <div class="orders-table-container">
-                        <table class="orders-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Icon</th>
-                                    <th>Subtitle</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php
-                                $categories_file_path = __DIR__ . '/categories.json';
-                                if (file_exists($categories_file_path)) {
-                                    $categories_json = file_get_contents($categories_file_path);
-                                    $categories = json_decode($categories_json, true);
-                                    if (is_array($categories)) {
-                                        foreach ($categories as $category) {
-                                            echo '<tr>';
-                                            echo '<td data-label="Name">' . htmlspecialchars($category['name']) . '</td>';
-                                            echo '<td data-label="Icon">' . htmlspecialchars($category['icon']) . '</td>';
-                                            echo '<td data-label="Subtitle">' . htmlspecialchars($category['subtitle']) . '</td>';
-                                            echo '<td data-label="Action">
-                                                    <form method="POST" action="admin_dashboard.php?page=categories" onsubmit="return confirm(\'Are you sure you want to delete this category?\');">
-                                                        <input type="hidden" name="category_name" value="' . htmlspecialchars($category['name']) . '">
-                                                        <button type="submit" name="delete_category" class="action-btn action-btn-delete" style="color: #dc3545 !important; border-color: #dc3545;">Delete</button>
-                                                    </form>
-                                                  </td>';
-                                            echo '</tr>';
-                                        }
-                                    }
+                    <div class="category-cards-container">
+                        <?php
+                        $categories_file_path = __DIR__ . '/categories.json';
+                        if (file_exists($categories_file_path)) {
+                            $categories_json = file_get_contents($categories_file_path);
+                            $categories = json_decode($categories_json, true);
+                            if (is_array($categories)) {
+                                foreach ($categories as $category) {
+                                    echo '<div class="category-card">';
+                                    echo '<div class="category-card-icon"><i class="' . htmlspecialchars($category['icon']) . '"></i></div>';
+                                    echo '<div class="category-card-body">';
+                                    echo '<h4 class="category-card-name">' . htmlspecialchars($category['name']) . '</h4>';
+                                    echo '<p class="category-card-subtitle">' . htmlspecialchars($category['subtitle']) . '</p>';
+                                    echo '</div>';
+                                    echo '<div class="category-card-footer">';
+                                    echo '<form method="POST" action="admin_dashboard.php?page=categories" onsubmit="return confirm(\'Are you sure you want to delete this category?\');">';
+                                    echo '<input type="hidden" name="category_name" value="' . htmlspecialchars($category['name']) . '">';
+                                    echo '<button type="submit" name="delete_category" class="action-btn action-btn-delete" style="color: #dc3545 !important; border-color: #dc3545;">Delete</button>';
+                                    echo '</form>';
+                                    echo '</div>';
+                                    echo '</div>';
                                 }
-                                ?>
-                            </tbody>
-                        </table>
+                            }
+                        }
+                        ?>
                     </div>
                 </div>
             <?php elseif (isset($_GET['page']) && $_GET['page'] === 'edit_products'): ?>
