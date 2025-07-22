@@ -7,7 +7,8 @@
         "category": "software",
         "price": 249,
         "image": "product_images/CAPCUT PRO.png",
-        "isFeatured": true
+        "isFeatured": true,
+        "stock": 1
     },
     {
         "id": 4,
@@ -18,6 +19,7 @@
         "price": 0,
         "image": "product_images/CANVAPRO.png",
         "isFeatured": true,
+        "stock": 1,
         "durations": [
             {
                 "label": "6 MONTH",
@@ -42,6 +44,7 @@
         "price": 0,
         "image": "product_images/Chatgpt1.png",
         "isFeatured": true,
+        "stock": 1,
         "durations": [
             {
                 "label": "1 MONTH",
@@ -58,6 +61,7 @@
         "price": 0,
         "image": "product_images/WASENDERR.png",
         "isFeatured": true,
+        "stock": 1,
         "durations": [
             {
                 "label": "6 MONTH",
@@ -82,6 +86,7 @@
         "price": 0,
         "image": "product_images/windows7pro.png",
         "isFeatured": false,
+        "stock": 1,
         "durations": [
             {
                 "label": "Windows 7 Home Basic Key",
@@ -110,6 +115,7 @@
         "price": 0,
         "image": "product_images/windows8pro.png",
         "isFeatured": false,
+        "stock": 1,
         "durations": [
             {
                 "label": "Windows 8 Professional Key",
@@ -130,6 +136,7 @@
         "price": 0,
         "image": "product_images/windows10pro.png",
         "isFeatured": false,
+        "stock": 1,
         "durations": [
             {
                 "label": "Windows 10 Pro Key",
@@ -154,6 +161,7 @@
         "price": 0,
         "image": "product_images/WINDOWS11pro.png",
         "isFeatured": false,
+        "stock": 1,
         "durations": [
             {
                 "label": "Windows 11 Pro Key",

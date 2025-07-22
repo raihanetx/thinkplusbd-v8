@@ -326,6 +326,64 @@ table.orders-table {
 }
 /* --- END: REMOVED OLD MEDIA QUERY --- */
 
+.category-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.category-card {
+    background-color: var(--card-bg-color);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--box-shadow);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(82,63,105,0.1);
+}
+
+.category-card-icon {
+    padding: 1.5rem;
+    text-align: center;
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    background-color: rgba(var(--primary-color-rgb), 0.08);
+    border-top-left-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
+}
+
+.category-card-body {
+    padding: 1.25rem;
+    flex-grow: 1;
+    text-align: center;
+}
+
+.category-card-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--text-color);
+    margin-bottom: 0.25rem;
+}
+
+.category-card-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.category-card-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--border-color);
+    background-color: #fcfdff;
+    display: flex;
+    justify-content: center;
+}
+
 @media (max-width: 767.98px) {
     body { font-size: 13.5px; }
     .admin-topbar { padding: 0.75rem 1rem; }
@@ -340,4 +398,17 @@ table.orders-table {
     .action-buttons-group { flex-direction: column; align-items: stretch; width: 100%; }
     .action-buttons-group form, .action-buttons-group .action-btn { width: 100%; }
     .action-buttons-group .action-btn { justify-content: center; }
+
+    .category-cards-container {
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        padding-bottom: 1rem; /* For scrollbar */
+        gap: 1rem;
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    }
+
+    .category-card {
+        flex: 0 0 220px; /* Do not grow, do not shrink, initial size 220px */
+    }
 }
