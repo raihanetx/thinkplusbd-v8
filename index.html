@@ -390,10 +390,21 @@ src="https://www.facebook.com/tr?id=482675157669768&ev=PageView&noscript=1"
         .banner-image-container .image-placeholder-text { font-size: 1.4em; font-weight: 600; color: #a0a0a0; }
 
         .category-section-title { font-size: 1.75rem; font-weight: 700; color: var(--text-color); text-align: center; margin-top: 1rem; margin-bottom: 1.5rem; }
-        .categories { display: flex; overflow-x: auto; padding-bottom: 1.5rem; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
-        .category { background-color: white; border-radius: 16px; padding: 1.25rem 1rem; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; border: 1px solid #e9e9e9; flex: 0 0 200px; scroll-snap-align: start; }
+        .categories { display: flex; flex-wrap: wrap; gap: 1rem; padding-bottom: 1.5rem; }
+        .category { background-color: white; border-radius: 16px; padding: 1.25rem 1rem; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; border: 1px solid #e9e9e9; flex: 1 1 200px; }
         .category:hover { transform: translateY(-4px); box-shadow: 0 6px 16px rgba(0,0,0,0.12); border-color: var(--primary-color); }
         .category-icon-wrapper { background-color: var(--primary-color); width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; transition: transform 0.2s ease; }
+        @media (min-width: 1200px) {
+            .categories.container {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -ms-overflow-style: none;  /* IE and Edge */
+                scrollbar-width: none;  /* Firefox */
+            }
+            .categories.container::-webkit-scrollbar {
+                display: none;
+            }
+        }
         .category:hover .category-icon-wrapper { transform: scale(1.05); }
         .category i.category-icon-fa { font-size: 1.8rem; color: white; display: block; line-height: 1; }
         .category-name { font-size: 1.1rem; font-weight: 600; color: var(--text-color); line-height: 1.3; margin-bottom: 0.35rem; }
@@ -419,14 +430,11 @@ src="https://www.facebook.com/tr?id=482675157669768&ev=PageView&noscript=1"
             top: 10px;
             right: 10px;
             padding: 5px 10px;
-            border-radius: 5px;
+            border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 600;
             color: white;
             z-index: 2;
-        }
-        .stock-badge.in-stock {
-            background-color: #28a745;
         }
         .stock-badge.out-of-stock {
             background-color: #dc3545;
@@ -602,6 +610,12 @@ src="https://www.facebook.com/tr?id=482675157669768&ev=PageView&noscript=1"
         .related-product-description { font-size: 0.85rem; color: #666; margin-bottom: 0.5rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: pre-line; }
         .related-product-price { font-size: 1.1rem; font-weight: 700; color: var(--primary-color); margin-top: auto; }
         .related-product-actions { display: none !important; }
+
+        .review-form { margin-top: 2rem; }
+        .review-form .form-group { margin-bottom: 1rem; }
+        .review-form label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+        .review-form input, .review-form textarea, .review-form select { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+        .review-form button { background-color: var(--primary-color); color: white; padding: 0.7rem 1.5rem; border: none; border-radius: 4px; cursor: pointer; }
 
         .checkout-page { background-color: #f8f9fa; margin: 0; min-height: calc(100vh - var(--header-height)); }
         .page#checkoutPage.active { display: flex; justify-content: center; align-items: flex-start; padding: 1.5rem 1.25rem; }
@@ -2096,10 +2110,10 @@ src="https://www.facebook.com/tr?id=482675157669768&ev=PageView&noscript=1"
             const card = document.createElement('div'); card.className = 'product-card'; card.setAttribute('data-id', product.id);
             const imageContainer = document.createElement('div'); imageContainer.className = 'product-card-image-container';
 
-            const stockStatus = product.stock > 0 ? "Stock In" : "Stock Out";
-            const stockClass = product.stock > 0 ? "in-stock" : "out-of-stock";
-            const stockBadge = `<div class="stock-badge ${stockClass}">${stockStatus}</div>`;
-            imageContainer.innerHTML += stockBadge;
+            if (product.stock === 0) {
+                const stockBadge = `<div class="stock-badge out-of-stock">Stock Out</div>`;
+                imageContainer.innerHTML += stockBadge;
+            }
 
             const skeletonDiv = document.createElement('div'); skeletonDiv.className = 'skeleton'; imageContainer.appendChild(skeletonDiv);
             const placeholderTextSpan = document.createElement('span'); placeholderTextSpan.className = 'image-placeholder-text'; placeholderTextSpan.style.display = 'none'; placeholderTextSpan.textContent = `Image for ${product.name}`; imageContainer.appendChild(placeholderTextSpan);
@@ -2222,21 +2236,41 @@ src="https://www.facebook.com/tr?id=482675157669768&ev=PageView&noscript=1"
             detailPageElement.innerHTML = `
                 <div class="product-detail-container">
                     <div class="product-detail-images">${tempImageDiv.innerHTML}</div>
-                    <div class="product-detail-info">
-                        <h2 class="product-detail-title">${product.name || 'N/A'}</h2>
-                        <p class="product-detail-short-description">${shortDescription}</p>
-                        <div class="accordion">
-                            <div class="accordion-item">
-                                <button class="accordion-header">Description</button>
-                                <div class="accordion-content">
-                                    <p>${longDescription}</p>
-                                </div>
+                    <h2 class="product-detail-title">${product.name || 'N/A'}</h2>
+                    <p class="product-detail-short-description">${shortDescription}</p>
+                    <div class="accordion">
+                        <div class="accordion-item">
+                            <button class="accordion-header">Description</button>
+                            <div class="accordion-content">
+                                <p>${longDescription}</p>
                             </div>
-                            <div class="accordion-item">
-                                <button class="accordion-header">Reviews</button>
-                                <div class="accordion-content">
-                                    <p>${reviews}</p>
-                                </div>
+                        </div>
+                        <div class="accordion-item">
+                            <button class="accordion-header">Reviews</button>
+                            <div class="accordion-content">
+                                <p>${reviews}</p>
+                                <form action="submit_review.php" method="POST" class="review-form">
+                                    <input type="hidden" name="product_id" value="${product.id}">
+                                    <div class="form-group">
+                                        <label for="name">Name:</label>
+                                        <input type="text" name="name" id="name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="rating">Rating:</label>
+                                        <select name="rating" id="rating" required>
+                                            <option value="5">5 Stars</option>
+                                            <option value="4">4 Stars</option>
+                                            <option value="3">3 Stars</option>
+                                            <option value="2">2 Stars</option>
+                                            <option value="1">1 Star</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="comment">Comment:</label>
+                                        <textarea name="comment" id="comment" rows="4" required></textarea>
+                                    </div>
+                                    <button type="submit">Submit Review</button>
+                                </form>
                             </div>
                         </div>
                     </div>
