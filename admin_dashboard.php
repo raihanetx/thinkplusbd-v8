@@ -143,14 +143,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'category' => $_POST['category'],
             'price' => (float)$_POST['price'],
             'image' => $image_path,
-            'isFeatured' => isset($_POST['isFeatured']),
+            'isFeatured' => isset($_POST['isFeatured']) && $_POST['isFeatured'] === 'true',
             'durations' => []
         ];
 
         $products[] = $new_product;
         save_products($products);
 
-        header("Location: admin_dashboard.php?page=edit_products&category=" . urlencode($_POST['category']) . "&status=added");
+        header("Location: admin_dashboard.php?page=products&category=" . urlencode($_POST['category']) . "&status=added");
         exit();
     }
 
