@@ -390,23 +390,28 @@ src="https://www.facebook.com/tr?id=482675157669768&ev=PageView&noscript=1"
         .banner-image-container .image-placeholder-text { font-size: 1.4em; font-weight: 600; color: #a0a0a0; }
 
         .category-section-title { font-size: 1.75rem; font-weight: 700; color: var(--text-color); text-align: center; margin-top: 1rem; margin-bottom: 1.5rem; }
-        .categories { display: flex; flex-wrap: wrap; gap: 1rem; padding-bottom: 1.5rem; }
-        .category { background-color: white; border-radius: 16px; padding: 1.25rem 1rem; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; border: 1px solid #e9e9e9; flex: 1 1 200px; }
+        .categories { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; padding-bottom: 1.5rem; }
+        .category { background-color: white; border-radius: 16px; padding: 1.25rem 1rem; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; border: 1px solid #e9e9e9; aspect-ratio: 1/1; }
         .category:hover { transform: translateY(-4px); box-shadow: 0 6px 16px rgba(0,0,0,0.12); border-color: var(--primary-color); }
         .category-icon-wrapper { background-color: var(--primary-color); width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; transition: transform 0.2s ease; }
-        @media (min-width: 1200px) {
+        .category:hover .category-icon-wrapper { transform: scale(1.05); }
+        .category i.category-icon-fa { font-size: 1.8rem; color: white; display: block; line-height: 1; }
+        @media (max-width: 768px) {
+            .categories {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (min-width: 769px) {
             .categories.container {
                 flex-wrap: nowrap;
                 overflow-x: auto;
-                -ms-overflow-style: none;  /* IE and Edge */
-                scrollbar-width: none;  /* Firefox */
+                -ms-overflow-style: none;
+                scrollbar-width: none;
             }
             .categories.container::-webkit-scrollbar {
                 display: none;
             }
         }
-        .category:hover .category-icon-wrapper { transform: scale(1.05); }
-        .category i.category-icon-fa { font-size: 1.8rem; color: white; display: block; line-height: 1; }
         .category-name { font-size: 1.1rem; font-weight: 600; color: var(--text-color); line-height: 1.3; margin-bottom: 0.35rem; }
         .category-subtitle { font-size: 0.85rem; color: #666666; line-height: 1.4; }
 
