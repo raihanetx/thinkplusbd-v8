@@ -143,14 +143,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'category' => $_POST['category'],
             'price' => (float)$_POST['price'],
             'image' => $image_path,
-            'isFeatured' => isset($_POST['isFeatured']),
+            'isFeatured' => isset($_POST['isFeatured']) && $_POST['isFeatured'] === 'true',
             'durations' => []
         ];
 
         $products[] = $new_product;
         save_products($products);
 
-        header("Location: admin_dashboard.php?page=edit_products&category=" . urlencode($_POST['category']) . "&status=added");
+        header("Location: admin_dashboard.php?page=products&category=" . urlencode($_POST['category']) . "&status=added");
         exit();
     }
 
@@ -411,7 +411,7 @@ $current_total_pending_all_time = getCurrentTotalPendingOrders($all_site_orders_
             <?php elseif (isset($_GET['page']) && $_GET['page'] === 'add_product'): ?>
                 <div class="content-card">
                     <h2 class="card-title">Add a New Product</h2>
-                    <form action="admin_dashboard.php?page=edit_products" method="POST" enctype="multipart/form-data">
+                    <form action="admin_dashboard.php" method="POST" enctype="multipart/form-data">
                         <input type="hidden" name="create_product" value="1">
                         <div class="form-group" style="margin-bottom: 1rem;">
                             <label for="name">Product Title</label>
